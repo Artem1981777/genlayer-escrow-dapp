@@ -1,0 +1,14 @@
+{
+  "name": "genlayer-escrow-dapp",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "AIEscrowArbiter: AI-adjudicated on-chain escrow on GenLayer with a live dApp.",
+  "scripts": {
+    "deploy": "node --env-file=.env deploy.mjs",
+    "demo": "node --env-file=.env interact.mjs",
+    "test": "node --env-file=.env test.mjs"
+  },
+  "dependencies": {
+    "genlayer-js": "^1.1.8"
+  }
+}

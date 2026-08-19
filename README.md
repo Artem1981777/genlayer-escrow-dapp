@@ -1,22 +1,48 @@
 # AIEscrowArbiter dApp — Live Escrow Dashboard on GenLayer
 
-A web dApp that reads the on-chain state of an **AIEscrowArbiter** Intelligent Contract live from GenLayer Testnet Bradbury, alongside the contract and the client/test scripts that drive it. No oracle and no human arbiter: disputes are resolved by an LLM under validator **consensus** (Equivalence Principle).
+A full GenLayer project: an **AIEscrowArbiter** Intelligent Contract, a live web dApp that reads its on-chain state, and a backend client + automated test suite. Disputes are resolved by an LLM under validator **consensus** (Equivalence Principle) — no oracle, no human arbiter.
 
 ## Live demo
 
 - **App:** https://artem1981777.github.io/genlayer-escrow-dapp/
-- **Live contract:** `0x6f33FF874366aEd9B071505Ffa1057072b8FC37C` (Testnet Bradbury, Chain ID 4221)
+- **Live contract:** `0x6f33FF874366aEd9B071505Ffa1057072b8FC37C` (Testnet Bradbury, Chain ID 4221) — currently shows a resolved **RELEASE** verdict.
 - **Explorer:** https://explorer-bradbury.genlayer.com/address/0x6f33FF874366aEd9B071505Ffa1057072b8FC37C
 
-Paste any AIEscrowArbiter address into the app to inspect it. Try `0x274bF783F93Ffe330440905BA80321514972A954` to see a resolved RELEASE verdict.
+Paste any AIEscrowArbiter address into the app to inspect it. Try `0x274bF783F93Ffe330440905BA80321514972A954` for another RELEASE example.
 
 ## What is in here
 
-- `index.html` — the live dashboard frontend (genlayer-js via CDN, no build step). Reads `get_state()` and renders status, verdict, parties, terms and evidence, with auto-refresh.
+- `index.html` — live dashboard frontend (genlayer-js via CDN, no build). Reads `get_state()` and renders status, verdict, parties, terms and evidence, with auto-refresh.
 - `contracts/escrow.py` — the AIEscrowArbiter Intelligent Contract (hardened v2).
 - `deploy.mjs` — deploys a fresh instance.
 - `interact.mjs` — end-to-end escrow flow (fund, evidence, AI resolve).
-- `test.mjs` — automated test suite (5/5 on live testnet).
+- `test.mjs` — automated test suite.
+- `docs/SECURITY-AUDIT.md` — written security review.
+
+## Tests
+
+`test.mjs` runs against live GenLayer Testnet Bradbury, deploying fresh instances and exercising the full state machine on both outcomes:
+
+- RELEASE path — evidence satisfies the terms, funds go to the seller.
+- REFUND path — evidence fails the terms, funds go to the buyer.
+- Guard reverts — wrong caller, wrong state, or invalid evidence URL are rejected.
+
+Result: **5/5 passing**.
+
+~~~bash
+npm install
+node --env-file=.env test.mjs
+~~~
+
+## Security
+
+Full review: [`docs/SECURITY-AUDIT.md`](docs/SECURITY-AUDIT.md). Hardening in v2:
+
+- Access control — only buyer or seller may submit evidence or resolve.
+- State-machine guards — actions allowed only in valid states (funded / disputed).
+- Evidence-URL validation — must be http(s).
+- Prompt-injection defenses — evidence framed as untrusted data, strict JSON output, parse failure defaults to no-release.
+- Deterministic consensus via `gl.eq_principle.strict_eq`.
 
 ## How it works
 

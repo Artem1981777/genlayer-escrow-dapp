@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AIEscrowArbiter — Live Dashboard</title>
+<link rel="icon" href="genlayer-spinner.svg">
+<style>
+:root{--bg:#0b0b0d;--card:#151519;--line:#26262c;--fg:#f3f3f5;--mut:#9a9aa5;--acc:#ff6a00}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.5}
+.wrap{max-width:760px;margin:0 auto;padding:24px 16px 64px}
+h1{font-size:22px;margin:0 0 4px}
+.sub{color:var(--mut);font-size:14px;margin:0 0 20px}
+.bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+input{flex:1;min-width:220px;background:var(--card);border:1px solid var(--line);color:var(--fg);padding:10px 12px;border-radius:10px;font-size:13px;font-family:ui-monospace,monospace}
+button{background:var(--acc);color:#111;border:0;padding:10px 16px;border-radius:10px;font-weight:600;cursor:pointer;font-size:14px}
+button.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:14px}
+.row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+.row:last-child{border-bottom:0}
+.k{color:var(--mut)}
+.v{text-align:right;word-break:break-word;font-family:ui-monospace,monospace}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+.b-funded{background:#1e2a44;color:#7db1ff}
+.b-disputed{background:#3a2c12;color:#ffc266}
+.b-released{background:#123322;color:#5fd58a}
+.b-refunded{background:#3a1620;color:#ff7a90}
+.b-unknown{background:#26262c;color:#9a9aa5}
+.mut{color:var(--mut);font-size:13px}
+a{color:var(--acc)}
+.load{display:flex;align-items:center;gap:10px;color:var(--mut);font-size:14px}
+.load img{width:22px;height:22px}
+.err{background:#3a1620;border:1px solid #5a2230;color:#ff9aa8;padding:12px;border-radius:10px;font-size:13px}
+.foot{color:var(--mut);font-size:12px;margin-top:26px;text-align:center}
+.verdict{font-size:15px;font-weight:700}
+.vr-RELEASE{color:#5fd58a}
+.vr-REFUND{color:#ff7a90}
+code{background:#000;padding:1px 5px;border-radius:5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>AIEscrowArbiter — Live Dashboard</h1>
+<p class="sub">Real-time on-chain state of an AI-adjudicated escrow, read directly from GenLayer Testnet Bradbury.</p>
+<div class="bar">
+<input id="addr" spellcheck="false" value="0x6f33FF874366aEd9B071505Ffa1057072b8FC37C">
+<button id="load">Load</button>
+<button id="auto" class="ghost">Auto: off</button>
+</div>
+<div id="out" class="card"><div class="load"><img src="genlayer-spinner.svg" alt=""> Connecting to GenLayer…</div></div>
+<div class="card">
+<div class="mut"><b>How it works.</b> A buyer locks funds against human-readable terms. On dispute, the contract fetches the evidence URL from the live web, an LLM judges whether the terms are met, and validators reach consensus via the Equivalence Principle — releasing to the seller or refunding the buyer. This page only reads that state live; no wallet needed.</div>
+<div class="mut" style="margin-top:10px">Try a resolved example: paste <code>0x274bF783F93Ffe330440905BA80321514972A954</code> to see a RELEASE verdict.</div>
+</div>
+<div class="foot">Built on GenLayer • <a id="exlink" href="#" target="_blank">View on Explorer</a> • <a href="https://github.com/Artem1981777/genlayer-escrow-dapp" target="_blank">Source</a></div>
+</div>
+<script type="module">
+import { createClient } from "https://esm.sh/genlayer-js@latest";
+import { testnetBradbury } from "https://esm.sh/genlayer-js@latest/chains";
+const out = document.getElementById("out");
+const addrEl = document.getElementById("addr");
+const exlink = document.getElementById("exlink");
+let client;
+try { client = createClient({ chain: testnetBradbury }); } catch (e) { showErr("SDK init failed: " + e.message); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+function norm(st){ if(st instanceof Map){ const o={}; for(const kv of st){ o[kv[0]]=kv[1]; } return o; } return st||{}; }
+function badge(status){ const s=String(status||"unknown").toLowerCase(); const cls={funded:"b-funded",disputed:"b-disputed",released:"b-released",refunded:"b-refunded"}[s]||"b-unknown"; return '<span class="badge '+cls+'">'+esc(s)+'</span>'; }
+function showErr(m){ out.innerHTML='<div class="err">'+esc(m)+'</div>'; }
+function render(raw){
+ const st=norm(raw);
+ const status=st.status;
+ const verdict=st.verdict||"";
+ const vr=verdict?'<span class="verdict vr-'+esc(verdict)+'">'+esc(verdict)+'</span>':'<span class="mut">— not resolved yet</span>';
+ const ev=st.evidence_url?'<a href="'+esc(st.evidence_url)+'" target="_blank">'+esc(st.evidence_url)+'</a>':'<span class="mut">none</span>';
+ out.innerHTML='<div class="row"><span class="k">Status</span><span class="v">'+badge(status)+'</span></div>'+'<div class="row"><span class="k">Verdict</span><span class="v">'+vr+'</span></div>'+'<div class="row"><span class="k">Buyer</span><span class="v">'+esc(st.buyer)+'</span></div>'+'<div class="row"><span class="k">Seller</span><span class="v">'+esc(st.seller)+'</span></div>'+'<div class="row"><span class="k">Amount</span><span class="v">'+esc(st.amount)+'</span></div>'+'<div class="row"><span class="k">Terms</span><span class="v">'+esc(st.terms)+'</span></div>'+'<div class="row"><span class="k">Evidence</span><span class="v">'+ev+'</span></div>'+'<div class="row"><span class="k">Reason</span><span class="v">'+(st.reason?esc(st.reason):'<span class="mut">—</span>')+'</span></div>';
+}
+async function load(){
+ const address=addrEl.value.trim();
+ exlink.href="https://explorer-bradbury.genlayer.com/address/"+address;
+ if(!client){ return; }
+ out.innerHTML='<div class="load"><img src="genlayer-spinner.svg" alt=""> Reading get_state()…</div>';
+ try{ const st=await client.readContract({ address, functionName:"get_state", args:[] }); render(st); }catch(e){ showErr("Read failed: "+(e && e.message ? e.message : e)); }
+}
+let timer=null;
+document.getElementById("load").onclick=load;
+document.getElementById("auto").onclick=function(){ if(timer){ clearInterval(timer); timer=null; this.textContent="Auto: off"; } else { timer=setInterval(load,5000); this.textContent="Auto: on"; load(); } };
+load();
+</script>
+</body>
+</html>

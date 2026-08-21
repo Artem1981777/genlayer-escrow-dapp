@@ -4,15 +4,15 @@ import { testnetBradbury } from "genlayer-js/chains";
 import { TransactionStatus } from "genlayer-js/types";
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
 if (!PRIVATE_KEY) { throw new Error("PRIVATE_KEY not found. Run: node --env-file=.env deploy.mjs"); }
-const SELLER = "0x000000000000000000000000000000000000dEaD";
-const TERMS = "The evidence page must describe an AI-powered escrow arbiter Intelligent Contract built on GenLayer.";
-const AMOUNT = 100;
-const source = readFileSync("contracts/escrow.py", "utf8");
+const SELLER = "0xdc6778C5F8cC74b10aED11c48306D4Cfc5737FBD";
+const AMOUNT_WEI = 1000000000000000;
+const TERMS = "Deliver the agreed digital asset to the buyer. RELEASE to seller if delivered as described; REFUND to buyer if not delivered or not as described.";
+const source = readFileSync("contracts/escrow_arbiter.py", "utf8");
 const code = new TextEncoder().encode(source);
 const account = createAccount(PRIVATE_KEY);
 const client = createClient({ chain: testnetBradbury, account });
-console.log("Deploying AIEscrowArbiter (new Depends hash)...");
-const txHash = await client.deployContract({ code, args: [SELLER, TERMS, AMOUNT] });
+console.log("Deploying EscrowArbiter...");
+const txHash = await client.deployContract({ code, args: [SELLER, AMOUNT_WEI, TERMS] });
 console.log("deploy tx:", txHash);
 await client.waitForTransactionReceipt({ hash: txHash, status: TransactionStatus.ACCEPTED, retries: 300 });
 const tx = await client.getTransaction({ hash: txHash });
@@ -21,7 +21,8 @@ console.log("=== DEPLOY RESULT ===");
 console.log("statusName:", tx?.statusName);
 console.log("txExecutionResultName:", tx?.txExecutionResultName);
 console.log("contract address:", address);
-if (tx?.txExecutionResultName !== "FINISHED") { console.log("!!! WARNING: execution not clean ->", tx?.txExecutionResultName); }
-else { console.log(">>> CLEAN DEPLOY OK"); }
+const ok = (tx?.txExecutionResultName === "FINISHED" || tx?.txExecutionResultName === "FINISHED_WITH_RETURN");
+console.log(ok ? ">>> CLEAN DEPLOY OK" : ("!!! WARNING: execution not clean -> " + tx?.txExecutionResultName));
 writeFileSync("contract.txt", String(address));
+writeFileSync("deploy-tx.txt", String(txHash));
 console.log("saved address -> contract.txt");

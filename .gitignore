@@ -1,3 +1,7 @@
 node_modules/
 .env
 contract.txt
+.env
+node_modules
+seller-key.txt
+seller-addr.txt

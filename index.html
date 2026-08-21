@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AIEscrowArbiter — Live Dashboard</title>
+<title>AIEscrowArbiter - Live Dashboard</title>
 <link rel="icon" href="genlayer-spinner.svg">
 <style>
 :root{--bg:#0b0b0d;--card:#151519;--line:#26262c;--fg:#f3f3f5;--mut:#9a9aa5;--acc:#ff6a00}
@@ -22,10 +22,10 @@ button.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)
 .k{color:var(--mut)}
 .v{text-align:right;word-break:break-word;font-family:ui-monospace,monospace}
 .badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+.b-created{background:#26262c;color:#c9c9d3}
 .b-funded{background:#1e2a44;color:#7db1ff}
-.b-disputed{background:#3a2c12;color:#ffc266}
-.b-released{background:#123322;color:#5fd58a}
-.b-refunded{background:#3a1620;color:#ff7a90}
+.b-resolved{background:#3a2c12;color:#ffc266}
+.b-paid{background:#123322;color:#5fd58a}
 .b-unknown{background:#26262c;color:#9a9aa5}
 .mut{color:var(--mut);font-size:13px}
 a{color:var(--acc)}
@@ -36,51 +36,74 @@ a{color:var(--acc)}
 .verdict{font-size:15px;font-weight:700}
 .vr-RELEASE{color:#5fd58a}
 .vr-REFUND{color:#ff7a90}
+.ev{border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:8px}
+.ev .role{font-weight:700;text-transform:uppercase;font-size:11px;letter-spacing:.04em}
+.role-buyer{color:#7db1ff}
+.role-seller{color:#ffc266}
+.ev .who{color:var(--mut);font-size:11px;font-family:ui-monospace,monospace;word-break:break-all}
+.ev .txt{font-size:13px;margin-top:4px}
+.ok{color:#5fd58a;font-weight:700}
 code{background:#000;padding:1px 5px;border-radius:5px}
 </style>
 </head>
 <body>
 <div class="wrap">
-<h1>AIEscrowArbiter — Live Dashboard</h1>
+<h1>AIEscrowArbiter - Live Dashboard</h1>
 <p class="sub">Real-time on-chain state of an AI-adjudicated escrow, read directly from GenLayer Testnet Bradbury.</p>
 <div class="bar">
-<input id="addr" spellcheck="false" value="0x6f33FF874366aEd9B071505Ffa1057072b8FC37C">
+<input id="addr" spellcheck="false" value="0x829DB851bc9963c71B22305e3b73bf5B220D1462">
 <button id="load">Load</button>
 <button id="auto" class="ghost">Auto: off</button>
 </div>
-<div id="out" class="card"><div class="load"><img src="genlayer-spinner.svg" alt=""> Connecting to GenLayer…</div></div>
+<div id="out" class="card"><div class="load"><img src="genlayer-spinner.svg" alt=""> Connecting to GenLayer...</div></div>
+<div id="evout"></div>
 <div class="card">
-<div class="mut"><b>How it works.</b> A buyer locks funds against human-readable terms. On dispute, the contract fetches the evidence URL from the live web, an LLM judges whether the terms are met, and validators reach consensus via the Equivalence Principle — releasing to the seller or refunding the buyer. This page only reads that state live; no wallet needed.</div>
-<div class="mut" style="margin-top:10px">Try a resolved example: paste <code>0x274bF783F93Ffe330440905BA80321514972A954</code> to see a RELEASE verdict.</div>
+<div class="mut"><b>How it works.</b> A buyer locks real native GEN against human-readable terms. Both parties submit authenticated, append-only evidence. On resolve, an LLM judges the evidence and validators reach consensus via the Equivalence Principle; the consensed verdict controls a replay-safe payout that actually transfers the held GEN to the seller (RELEASE) or back to the buyer (REFUND). This page reads that state live; no wallet needed.</div>
+<div class="mut" style="margin-top:10px">Examples: <code>0x829DB851bc9963c71B22305e3b73bf5B220D1462</code> is a contested case resolved REFUND with evidence from both parties. Paste <code>0x679f4657d126Aa973A070E59654b6B8c37EaA7c0</code> for a fully-settled RELEASE (funds delivered to the seller, contract balance 0).</div>
 </div>
-<div class="foot">Built on GenLayer • <a id="exlink" href="#" target="_blank">View on Explorer</a> • <a href="https://github.com/Artem1981777/genlayer-escrow-dapp" target="_blank">Source</a></div>
+<div class="foot">Built on GenLayer - <a id="exlink" href="#" target="_blank">View on Explorer</a> - <a href="https://github.com/Artem1981777/genlayer-escrow-dapp" target="_blank">Source</a></div>
 </div>
 <script type="module">
 import { createClient } from "https://esm.sh/genlayer-js@latest";
 import { testnetBradbury } from "https://esm.sh/genlayer-js@latest/chains";
 const out = document.getElementById("out");
+const evout = document.getElementById("evout");
 const addrEl = document.getElementById("addr");
 const exlink = document.getElementById("exlink");
 let client;
 try { client = createClient({ chain: testnetBradbury }); } catch (e) { showErr("SDK init failed: " + e.message); }
 function esc(s){ return String(s==null?"":s).replace(/[&<>]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
-function norm(st){ if(st instanceof Map){ const o={}; for(const kv of st){ o[kv[0]]=kv[1]; } return o; } return st||{}; }
-function badge(status){ const s=String(status||"unknown").toLowerCase(); const cls={funded:"b-funded",disputed:"b-disputed",released:"b-released",refunded:"b-refunded"}[s]||"b-unknown"; return '<span class="badge '+cls+'">'+esc(s)+'</span>'; }
-function showErr(m){ out.innerHTML='<div class="err">'+esc(m)+'</div>'; }
-function render(raw){
- const st=norm(raw);
- const status=st.status;
+function parseMaybe(x){ if(x==null) return null; if(typeof x==="string"){ try{ return JSON.parse(x); }catch(e){ return x; } } if(x instanceof Map){ const o={}; for(const kv of x){ o[kv[0]]=kv[1]; } return o; } return x; }
+function gen(w){ if(w==null||w==="") return "-"; try{ return (Number(w)/1e18).toLocaleString(undefined,{maximumFractionDigits:6})+" GEN"; }catch(e){ return String(w); } }
+function badge(state){ const s=String(state||"unknown").toLowerCase(); const cls={created:"b-created",funded:"b-funded",resolved:"b-resolved",paid:"b-paid"}[s]||"b-unknown"; return '<span class="badge '+cls+'">'+esc(s)+'</span>'; }
+function showErr(m){ out.innerHTML='<div class="err">'+esc(m)+'</div>'; evout.innerHTML=""; }
+function short(a){ a=String(a||""); return a.length>16?a.slice(0,10)+"..."+a.slice(-6):a; }
+function render(rawStatus, rawEv){
+ const st=parseMaybe(rawStatus)||{};
  const verdict=st.verdict||"";
- const vr=verdict?'<span class="verdict vr-'+esc(verdict)+'">'+esc(verdict)+'</span>':'<span class="mut">— not resolved yet</span>';
- const ev=st.evidence_url?'<a href="'+esc(st.evidence_url)+'" target="_blank">'+esc(st.evidence_url)+'</a>':'<span class="mut">none</span>';
- out.innerHTML='<div class="row"><span class="k">Status</span><span class="v">'+badge(status)+'</span></div>'+'<div class="row"><span class="k">Verdict</span><span class="v">'+vr+'</span></div>'+'<div class="row"><span class="k">Buyer</span><span class="v">'+esc(st.buyer)+'</span></div>'+'<div class="row"><span class="k">Seller</span><span class="v">'+esc(st.seller)+'</span></div>'+'<div class="row"><span class="k">Amount</span><span class="v">'+esc(st.amount)+'</span></div>'+'<div class="row"><span class="k">Terms</span><span class="v">'+esc(st.terms)+'</span></div>'+'<div class="row"><span class="k">Evidence</span><span class="v">'+ev+'</span></div>'+'<div class="row"><span class="k">Reason</span><span class="v">'+(st.reason?esc(st.reason):'<span class="mut">—</span>')+'</span></div>';
+ const vr=verdict?'<span class="verdict vr-'+esc(verdict)+'">'+esc(verdict)+'</span>':'<span class="mut">not resolved yet</span>';
+ const paid=String(st.payout_done)==="true"||st.payout_done===true;
+ out.innerHTML='<div class="row"><span class="k">State</span><span class="v">'+badge(st.state)+'</span></div>'+'<div class="row"><span class="k">Held on contract</span><span class="v">'+gen(st.balance_wei)+'</span></div>'+'<div class="row"><span class="k">Escrow amount</span><span class="v">'+gen(st.amount_wei)+'</span></div>'+'<div class="row"><span class="k">Buyer</span><span class="v">'+esc(st.buyer)+'</span></div>'+'<div class="row"><span class="k">Seller</span><span class="v">'+esc(st.seller)+'</span></div>'+'<div class="row"><span class="k">Verdict</span><span class="v">'+vr+'</span></div>'+'<div class="row"><span class="k">Reason</span><span class="v">'+(st.verdict_reason?esc(st.verdict_reason):'<span class="mut">-</span>')+'</span></div>'+'<div class="row"><span class="k">Payout executed</span><span class="v">'+(paid?'<span class="ok">Yes - replay-safe</span>':'No')+'</span></div>'+'<div class="row"><span class="k">Evidence entries</span><span class="v">'+esc(st.evidence_count)+'</span></div>';
+ const ev=parseMaybe(rawEv)||[];
+ if(Array.isArray(ev)&&ev.length){
+  let h='<div class="card"><div class="k" style="margin-bottom:6px">Authenticated evidence (append-only)</div>';
+  for(const e of ev){ const role=String(e.role||"").toLowerCase(); h+='<div class="ev"><span class="role role-'+esc(role)+'">'+esc(e.role)+'</span> <span class="who">'+esc(short(e.submitter))+'</span><div class="txt">'+esc(e.content)+'</div></div>'; }
+  h+='</div>';
+  evout.innerHTML=h;
+ } else { evout.innerHTML=""; }
 }
 async function load(){
  const address=addrEl.value.trim();
  exlink.href="https://explorer-bradbury.genlayer.com/address/"+address;
  if(!client){ return; }
- out.innerHTML='<div class="load"><img src="genlayer-spinner.svg" alt=""> Reading get_state()…</div>';
- try{ const st=await client.readContract({ address, functionName:"get_state", args:[] }); render(st); }catch(e){ showErr("Read failed: "+(e && e.message ? e.message : e)); }
+ out.innerHTML='<div class="load"><img src="genlayer-spinner.svg" alt=""> Reading get_status()...</div>';
+ evout.innerHTML="";
+ try{
+  const stStr=await client.readContract({ address, functionName:"get_status", args:[] });
+  let evStr="[]";
+  try{ evStr=await client.readContract({ address, functionName:"get_evidence", args:[] }); }catch(e){}
+  render(stStr, evStr);
+ }catch(e){ showErr("Read failed: "+(e && e.message ? e.message : e)); }
 }
 let timer=null;
 document.getElementById("load").onclick=load;

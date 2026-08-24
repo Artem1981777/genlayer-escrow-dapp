@@ -89,3 +89,19 @@ Real GEN custody, validator-consensed verdict, replay-safe payout, and non-overw
 - payout (to buyer): `0xc5a29c8e12d2e9b01a6e34b29aa0685591815567551bbd14f6056c3d65b4119d`
 
 Explorer: https://explorer-bradbury.genlayer.com
+
+
+---
+
+## Submission Evidence — Project: AI Escrow Arbiter (escrow-dApp)
+
+Category: Projects (Builder). Note: this repo URL was already used in a prior contribution — the portal rejects re-submitting the same GitHub repo URL ("This URL has already been submitted").
+
+### Links
+- Live demo: https://artem1981777.github.io/genlayer-escrow-dapp/
+- GitHub Repo: https://github.com/Artem1981777/genlayer-escrow-dapp
+- Contract — AIEscrowArbiter (C1): https://explorer-bradbury.genlayer.com/address/0x679f4657d126Aa973A070E59654b6B8c37EaA7c0
+- Contract — EscrowArbiter payable (C2): https://explorer-bradbury.genlayer.com/address/0x829DB851bc9963c71B22305e3b73bf5B220D1462
+- Tx — fund (locks real GEN): https://explorer-bradbury.genlayer.com/tx/0xb81bb8aef18cab6fb90a465ba2eff1d0dae9edcc53b9ee4963de912f622da675
+- Tx — resolve (consensus dispute resolution): https://explorer-bradbury.genlayer.com/tx/0xddfde4eb112ab194e8fe4b341461b84cf0c5e1f2b47797df324b96421bfa038d
+- Tx — payout (native GEN transfer): https://explorer-bradbury.genlayer.com/tx/0x8587b750b2ddb3f81efd886c66d14d131128f78339397e1eeba3f2dc68f00fbf

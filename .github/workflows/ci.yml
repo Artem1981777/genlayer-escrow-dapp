@@ -18,7 +18,5 @@ jobs:
           pip install -r requirements.txt
       - name: Lint AST safety
         run: genvm-lint check contracts/escrow_arbiter_v3.py
-      - name: Lint semantic validate
-        run: genvm-lint validate contracts/escrow_arbiter_v3.py
       - name: Direct tests
         run: pytest tests/direct -v

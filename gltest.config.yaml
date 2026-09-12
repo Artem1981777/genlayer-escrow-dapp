@@ -3,7 +3,6 @@ networks:
   localnet:
     url: "http://127.0.0.1:4000/api"
     leader_only: false
-  studionet:
   testnet_asimov:
     accounts:
       - "${ACCOUNT_PRIVATE_KEY_1}"

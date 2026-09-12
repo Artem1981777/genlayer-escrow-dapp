@@ -20,7 +20,7 @@ function provider(): any {
 export function getSigner(address: string): any {
   const p = provider();
   if (!p) throw new Error("No wallet provider");
-  return createClient({ chain: testnetBradbury, account: address.toLowerCase(), provider: p });
+  return createClient({ chain: testnetBradbury, account: address.toLowerCase() as any, provider: p });
 }
 
 export async function readView(address: string, functionName: string, args: any[] = []): Promise<any> {

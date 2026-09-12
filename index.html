@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AIEscrowArbiter - Live Dashboard</title>
+<title>AIEscrowArbiter v1 - Live Dashboard</title>
 <link rel="icon" href="genlayer-spinner.svg">
 <style>
 :root{--bg:#0b0b0d;--card:#151519;--line:#26262c;--fg:#f3f3f5;--mut:#9a9aa5;--acc:#ff6a00}
@@ -25,6 +25,7 @@ button.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)
 .b-created{background:#26262c;color:#c9c9d3}
 .b-funded{background:#1e2a44;color:#7db1ff}
 .b-resolved{background:#3a2c12;color:#ffc266}
+.b-appealed{background:#3a1233;color:#ff9ae0}
 .b-paid{background:#123322;color:#5fd58a}
 .b-unknown{background:#26262c;color:#9a9aa5}
 .mut{color:var(--mut);font-size:13px}
@@ -48,8 +49,8 @@ code{background:#000;padding:1px 5px;border-radius:5px}
 </head>
 <body>
 <div class="wrap">
-<h1>AIEscrowArbiter - Live Dashboard</h1>
-<p class="sub">Real-time on-chain state of an AI-adjudicated escrow, read directly from GenLayer Testnet Bradbury.</p>
+<h1>AIEscrowArbiter v1 - Live Dashboard</h1>
+<p class="sub">Live on-chain state of a trust-minimized, AI-adjudicated escrow on GenLayer Testnet Bradbury. Read-only; no wallet needed.</p>
 <div class="bar">
 <input id="addr" spellcheck="false" value="0x829DB851bc9963c71B22305e3b73bf5B220D1462">
 <button id="load">Load</button>
@@ -58,8 +59,8 @@ code{background:#000;padding:1px 5px;border-radius:5px}
 <div id="out" class="card"><div class="load"><img src="genlayer-spinner.svg" alt=""> Connecting to GenLayer...</div></div>
 <div id="evout"></div>
 <div class="card">
-<div class="mut"><b>How it works.</b> A buyer locks real native GEN against human-readable terms. Both parties submit authenticated, append-only evidence. On resolve, an LLM judges the evidence and validators reach consensus via the Equivalence Principle; the consensed verdict controls a replay-safe payout that actually transfers the held GEN to the seller (RELEASE) or back to the buyer (REFUND). This page reads that state live; no wallet needed.</div>
-<div class="mut" style="margin-top:10px">Examples: <code>0x829DB851bc9963c71B22305e3b73bf5B220D1462</code> is a contested case resolved REFUND with evidence from both parties. Paste <code>0x679f4657d126Aa973A070E59654b6B8c37EaA7c0</code> for a fully-settled RELEASE (funds delivered to the seller, contract balance 0).</div>
+<div class="mut"><b>How it works (v1).</b> A buyer locks native GEN against human-readable terms with explicit dispute and final deadlines. Either party appends authenticated evidence, optionally citing a web source URL. The buyer can confirm delivery for an instant release, or anyone can trigger a permissionless timeout - release to the seller if undisputed, refund to the buyer past the final deadline - so funds are never stuck. On a dispute an LLM fetches each cited source and validators reach consensus via the Equivalence Principle; the loser may stake a bond to appeal once, then a replay-safe, appeal-gated payout transfers the held GEN.</div>
+<div class="mut" style="margin-top:10px">Examples: <code>0x829DB851bc9963c71B22305e3b73bf5B220D1462</code> is a contested case resolved REFUND. Paste <code>0x679f4657d126Aa973A070E59654b6B8c37EaA7c0</code> for a fully-settled RELEASE (balance 0). The live v1 contract address will be added here after redeploy.</div>
 </div>
 <div class="foot">Built on GenLayer - <a id="exlink" href="#" target="_blank">View on Explorer</a> - <a href="https://github.com/Artem1981777/genlayer-escrow-dapp" target="_blank">Source</a></div>
 </div>
@@ -75,22 +76,38 @@ try { client = createClient({ chain: testnetBradbury }); } catch (e) { showErr("
 function esc(s){ return String(s==null?"":s).replace(/[&<>]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
 function parseMaybe(x){ if(x==null) return null; if(typeof x==="string"){ try{ return JSON.parse(x); }catch(e){ return x; } } if(x instanceof Map){ const o={}; for(const kv of x){ o[kv[0]]=kv[1]; } return o; } return x; }
 function gen(w){ if(w==null||w==="") return "-"; try{ return (Number(w)/1e18).toLocaleString(undefined,{maximumFractionDigits:6})+" GEN"; }catch(e){ return String(w); } }
-function badge(state){ const s=String(state||"unknown").toLowerCase(); const cls={created:"b-created",funded:"b-funded",resolved:"b-resolved",paid:"b-paid"}[s]||"b-unknown"; return '<span class="badge '+cls+'">'+esc(s)+'</span>'; }
+function badge(state){ const s=String(state||"unknown").toLowerCase(); const cls={created:"b-created",funded:"b-funded",resolved:"b-resolved",appealed:"b-appealed",paid:"b-paid"}[s]||"b-unknown"; return '<span class="badge '+cls+'">'+esc(s)+'</span>'; }
 function showErr(m){ out.innerHTML='<div class="err">'+esc(m)+'</div>'; evout.innerHTML=""; }
 function short(a){ a=String(a||""); return a.length>16?a.slice(0,10)+"..."+a.slice(-6):a; }
+function row(k,v){ return '<div class="row"><span class="k">'+esc(k)+'</span><span class="v">'+v+'</span></div>'; }
+function tsec(x){ if(x==null||x===""||x==="0") return null; const n=Number(x); return (isFinite(n)&&n>0)?n:null; }
+function fmtT(x){ const n=tsec(x); if(n==null) return "-"; try{ return new Date(n*1000).toISOString().replace("T"," ").slice(0,19)+" UTC"; }catch(e){ return String(x); } }
+function fmtDur(s){ s=Math.abs(Math.floor(s)); const D=86400,H=3600,M=60; if(s>=D) return Math.floor(s/D)+"d "+Math.floor((s%D)/H)+"h"; if(s>=H) return Math.floor(s/H)+"h "+Math.floor((s%H)/M)+"m"; if(s>=M) return Math.floor(s/M)+"m "+(s%M)+"s"; return s+"s"; }
+function rel(x, now){ const n=tsec(x), c=tsec(now); if(n==null||c==null) return ""; const d=n-c; if(d===0) return " (now)"; return d>0?(" (in "+fmtDur(d)+")"):(" ("+fmtDur(-d)+" ago)"); }
 function render(rawStatus, rawEv){
  const st=parseMaybe(rawStatus)||{};
+ const now=st.chain_now;
  const verdict=st.verdict||"";
  const vr=verdict?'<span class="verdict vr-'+esc(verdict)+'">'+esc(verdict)+'</span>':'<span class="mut">not resolved yet</span>';
  const paid=String(st.payout_done)==="true"||st.payout_done===true;
- out.innerHTML='<div class="row"><span class="k">State</span><span class="v">'+badge(st.state)+'</span></div>'+'<div class="row"><span class="k">Held on contract</span><span class="v">'+gen(st.balance_wei)+'</span></div>'+'<div class="row"><span class="k">Escrow amount</span><span class="v">'+gen(st.amount_wei)+'</span></div>'+'<div class="row"><span class="k">Buyer</span><span class="v">'+esc(st.buyer)+'</span></div>'+'<div class="row"><span class="k">Seller</span><span class="v">'+esc(st.seller)+'</span></div>'+'<div class="row"><span class="k">Verdict</span><span class="v">'+vr+'</span></div>'+'<div class="row"><span class="k">Reason</span><span class="v">'+(st.verdict_reason?esc(st.verdict_reason):'<span class="mut">-</span>')+'</span></div>'+'<div class="row"><span class="k">Payout executed</span><span class="v">'+(paid?'<span class="ok">Yes - replay-safe</span>':'No')+'</span></div>'+'<div class="row"><span class="k">Evidence entries</span><span class="v">'+esc(st.evidence_count)+'</span></div>';
+ const appealed=String(st.appealed)==="true"||st.appealed===true;
+ out.innerHTML=row("State", badge(st.state))+row("Held on contract", gen(st.balance_wei))+row("Escrow amount", gen(st.amount_wei))+row("Buyer", esc(st.buyer))+row("Seller", esc(st.seller))+row("Verdict", vr)+row("Reason", st.verdict_reason?esc(st.verdict_reason):'<span class="mut">-</span>')+row("Payout executed", paid?'<span class="ok">Yes - replay-safe</span>':'No')+row("Evidence entries", esc(st.evidence_count));
+ let e2='<div class="card"><div class="k" style="margin-bottom:6px">Lifecycle and deadlines</div>';
+ e2+=row("Chain time (now)", esc(fmtT(now)));
+ e2+=row("Created", esc(fmtT(st.created_at)));
+ e2+=row("Dispute window closes", esc(fmtT(st.dispute_deadline)+rel(st.dispute_deadline, now)));
+ e2+=row("Final deadline (auto-refund)", esc(fmtT(st.final_deadline)+rel(st.final_deadline, now)));
+ if(tsec(st.resolve_time)){ e2+=row("Resolved at", esc(fmtT(st.resolve_time))); }
+ if(tsec(st.appeal_deadline)){ e2+=row("Appeal window closes", esc(fmtT(st.appeal_deadline)+rel(st.appeal_deadline, now))); }
+ e2+='</div>';
+ if(appealed){ e2+='<div class="card"><div class="k" style="margin-bottom:6px">Appeal</div>'+row("Status", '<span class="badge b-appealed">appealed</span>')+row("Appellant", esc(st.appellant))+row("Bond staked", gen(st.appeal_bond_wei))+'</div>'; }
  const ev=parseMaybe(rawEv)||[];
  if(Array.isArray(ev)&&ev.length){
-  let h='<div class="card"><div class="k" style="margin-bottom:6px">Authenticated evidence (append-only)</div>';
-  for(const e of ev){ const role=String(e.role||"").toLowerCase(); h+='<div class="ev"><span class="role role-'+esc(role)+'">'+esc(e.role)+'</span> <span class="who">'+esc(short(e.submitter))+'</span><div class="txt">'+esc(e.content)+'</div></div>'; }
-  h+='</div>';
-  evout.innerHTML=h;
- } else { evout.innerHTML=""; }
+  e2+='<div class="card"><div class="k" style="margin-bottom:6px">Authenticated evidence (append-only)</div>';
+  for(const e of ev){ const role=String(e.role||"").toLowerCase(); const u=e.url?(' <a href="'+esc(e.url)+'" target="_blank" rel="noopener">source</a>'):''; e2+='<div class="ev"><span class="role role-'+esc(role)+'">'+esc(e.role)+'</span> <span class="who">'+esc(short(e.submitter))+'</span>'+u+'<div class="txt">'+esc(e.content)+'</div></div>'; }
+  e2+='</div>';
+ }
+ evout.innerHTML=e2;
 }
 async function load(){
  const address=addrEl.value.trim();

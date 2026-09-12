@@ -1,3 +1,6 @@
+# LEGACY (v0) - verdict-only contract, retained for history.
+# The active contract is contracts/escrow_arbiter.py (v2). See CHANGELOG.md.
+
 # { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }
 from genlayer import *
 import json

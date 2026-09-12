@@ -3,128 +3,356 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AIEscrowArbiter v1 - Live Dashboard</title>
+<title>AIEscrowArbiter - GenLayer dApp</title>
 <link rel="icon" href="genlayer-spinner.svg">
 <style>
-:root{--bg:#0b0b0d;--card:#151519;--line:#26262c;--fg:#f3f3f5;--mut:#9a9aa5;--acc:#ff6a00}
+:root{
+  --bg:#07070a; --card:rgba(22,22,28,.72); --line:#2a2a33; --glass:rgba(255,255,255,.04);
+  --fg:#f4f4f7; --mut:#9a9aa6; --acc:#ff6a00; --acc2:#ff9d4d;
+  --blue:#7db1ff; --gold:#ffc266; --green:#5fd58a; --red:#ff7a90; --pink:#ff9ae0;
+  --radius:16px; --shadow:0 8px 30px rgba(0,0,0,.35);
+}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.5}
-.wrap{max-width:760px;margin:0 auto;padding:24px 16px 64px}
-h1{font-size:22px;margin:0 0 4px}
-.sub{color:var(--mut);font-size:14px;margin:0 0 20px}
-.bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
-input{flex:1;min-width:220px;background:var(--card);border:1px solid var(--line);color:var(--fg);padding:10px 12px;border-radius:10px;font-size:13px;font-family:ui-monospace,monospace}
-button{background:var(--acc);color:#111;border:0;padding:10px 16px;border-radius:10px;font-weight:600;cursor:pointer;font-size:14px}
+html{scroll-behavior:smooth}
+body{margin:0;color:var(--fg);font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.55;
+  background:radial-gradient(1100px 560px at 82% -12%,#1a1030 0,transparent 60%),radial-gradient(880px 480px at -12% 0,#07202a 0,transparent 55%),var(--bg);
+  background-attachment:fixed}
+.wrap{max-width:1080px;margin:0 auto;padding:20px 16px 80px}
+a{color:var(--acc2);text-decoration:none}
+a:hover{text-decoration:underline}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+header.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+header.top h1{font-size:clamp(20px,3vw,26px);margin:0;font-weight:800;letter-spacing:-.01em}
+header.top .grow{flex:1}
+.sub{color:var(--mut);font-size:14px;margin:0 0 18px}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:999px;font-size:12.5px;font-weight:600;border:1px solid var(--line);background:var(--glass)}
+.pill .dot{width:8px;height:8px;border-radius:50%;background:var(--mut)}
+.pill.ok .dot{background:var(--green);box-shadow:0 0 0 3px rgba(95,213,138,.18)}
+.pill.bad{color:var(--red);border-color:#5a2230}.pill.bad .dot{background:var(--red)}
+button{background:linear-gradient(180deg,var(--acc2),var(--acc));color:#160a02;border:0;padding:10px 16px;border-radius:12px;font-weight:700;cursor:pointer;font-size:14px;transition:transform .08s,opacity .15s}
+button:hover{transform:translateY(-1px)}
+button:active{transform:translateY(0)}
+button:disabled{opacity:.4;cursor:not-allowed;transform:none}
 button.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:14px}
+button.sm{padding:7px 12px;font-size:13px;border-radius:10px}
+.bar{display:flex;gap:8px;margin:14px 0 18px;flex-wrap:wrap}
+input,textarea{background:#111116;border:1px solid var(--line);color:var(--fg);padding:10px 12px;border-radius:12px;font-size:13px;font-family:ui-monospace,monospace;width:100%}
+input:focus,textarea:focus{outline:0;border-color:var(--acc)}
+.bar input{flex:1;min-width:240px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;backdrop-filter:blur(10px);box-shadow:var(--shadow)}
+.card h3{margin:0 0 12px;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);font-weight:700}
+.span2{grid-column:1/-1}
 .row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
-.row:last-child{border-bottom:0}
-.k{color:var(--mut)}
-.v{text-align:right;word-break:break-word;font-family:ui-monospace,monospace}
-.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
-.b-created{background:#26262c;color:#c9c9d3}
-.b-funded{background:#1e2a44;color:#7db1ff}
-.b-resolved{background:#3a2c12;color:#ffc266}
-.b-appealed{background:#3a1233;color:#ff9ae0}
-.b-paid{background:#123322;color:#5fd58a}
-.b-unknown{background:#26262c;color:#9a9aa5}
-.mut{color:var(--mut);font-size:13px}
-a{color:var(--acc)}
-.load{display:flex;align-items:center;gap:10px;color:var(--mut);font-size:14px}
-.load img{width:22px;height:22px}
-.err{background:#3a1620;border:1px solid #5a2230;color:#ff9aa8;padding:12px;border-radius:10px;font-size:13px}
-.foot{color:var(--mut);font-size:12px;margin-top:26px;text-align:center}
-.verdict{font-size:15px;font-weight:700}
-.vr-RELEASE{color:#5fd58a}
-.vr-REFUND{color:#ff7a90}
-.ev{border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:8px}
-.ev .role{font-weight:700;text-transform:uppercase;font-size:11px;letter-spacing:.04em}
-.role-buyer{color:#7db1ff}
-.role-seller{color:#ffc266}
-.ev .who{color:var(--mut);font-size:11px;font-family:ui-monospace,monospace;word-break:break-all}
-.ev .txt{font-size:13px;margin-top:4px}
-.ok{color:#5fd58a;font-weight:700}
-code{background:#000;padding:1px 5px;border-radius:5px}
+.row:last-child{border-bottom:0}.k{color:var(--mut)}.v{text-align:right;word-break:break-word}
+.badge{display:inline-flex;padding:4px 11px;border-radius:999px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.03em}
+.b-created{background:#26262c;color:#c9c9d3}.b-funded{background:#1e2a44;color:var(--blue)}
+.b-resolved{background:#3a2c12;color:var(--gold)}.b-appealed{background:#3a1233;color:var(--pink)}
+.b-paid{background:#123322;color:var(--green)}.b-unknown{background:#26262c;color:var(--mut)}
+.hero{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.hero .amt{font-size:30px;font-weight:800;letter-spacing:-.02em}
+.verdict{font-weight:800}.vr-RELEASE{color:var(--green)}.vr-REFUND{color:var(--red)}
+.gauge{height:12px;border-radius:999px;background:#15151b;border:1px solid var(--line);overflow:hidden;margin-top:8px}
+.gauge>span{display:block;height:100%;background:linear-gradient(90deg,var(--acc2),var(--acc))}
+.tl{position:relative;margin:18px 4px 6px;height:6px;border-radius:999px;background:#15151b;border:1px solid var(--line)}
+.tl>i{position:absolute;top:-6px;width:14px;height:14px;border-radius:50%;border:2px solid var(--bg);transform:translateX(-50%)}
+.tl .fill{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--blue),var(--acc));border-radius:999px}
+.tlk{display:flex;justify-content:space-between;font-size:11px;color:var(--mut);margin-top:12px;gap:6px;flex-wrap:wrap}
+.ev{border:1px solid var(--line);border-radius:12px;padding:11px;margin-top:9px;background:var(--glass)}
+.ev .role{font-weight:800;text-transform:uppercase;font-size:11px;letter-spacing:.04em}
+.role-buyer{color:var(--blue)}.role-seller{color:var(--gold)}
+.ev .who{color:var(--mut);font-size:11px;word-break:break-all}.ev .txt{font-size:13px;margin-top:5px}
+.feed{max-height:230px;overflow:auto}.feed .item{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;padding:8px 0;border-bottom:1px solid var(--line)}
+.st{font-weight:700;font-size:11px;padding:2px 8px;border-radius:999px}
+.st.pending{background:#2a2410;color:var(--gold)}.st.done{background:#123322;color:var(--green)}.st.err{background:#3a1620;color:var(--red)}
+.you{font-size:10px;font-weight:800;color:var(--acc2);border:1px solid var(--acc);border-radius:6px;padding:1px 5px;margin-left:6px}
+.err{background:#3a1620;border:1px solid #5a2230;color:#ff9aa8;padding:12px;border-radius:12px;font-size:13px}
+.actions{display:flex;flex-direction:column;gap:10px}.actions .g{display:flex;gap:8px;flex-wrap:wrap}
+.hint{color:var(--mut);font-size:12px}
+.toasts{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:50;max-width:340px}
+.toast{background:#15151b;border:1px solid var(--line);border-left:3px solid var(--acc);padding:11px 13px;border-radius:10px;font-size:13px;box-shadow:var(--shadow);animation:in .2s ease}
+.toast.ok{border-left-color:var(--green)}.toast.bad{border-left-color:var(--red)}
+@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="wrap">
-<h1>AIEscrowArbiter v1 - Live Dashboard</h1>
-<p class="sub">Live on-chain state of a trust-minimized, AI-adjudicated escrow on GenLayer Testnet Bradbury. Read-only; no wallet needed.</p>
+<header class="top">
+  <h1>AIEscrowArbiter</h1>
+  <span class="grow"></span>
+  <span id="netpill" class="pill"><span class="dot"></span><span id="nettext">Not connected</span></span>
+  <button id="connect">Connect Wallet</button>
+</header>
+<p class="sub">Trust-minimized, AI-adjudicated escrow on GenLayer Testnet Bradbury. Connect a wallet to act as buyer or seller; without one the dashboard stays read-only.</p>
 <div class="bar">
-<input id="addr" spellcheck="false" value="0x829DB851bc9963c71B22305e3b73bf5B220D1462">
-<button id="load">Load</button>
-<button id="auto" class="ghost">Auto: off</button>
+  <input id="addr" spellcheck="false" placeholder="0x escrow contract address" value="0x829DB851bc9963c71B22305e3b73bf5B220D1462">
+  <button id="load">Load</button>
+  <button id="auto" class="ghost sm">Auto: off</button>
 </div>
-<div id="out" class="card"><div class="load"><img src="genlayer-spinner.svg" alt=""> Connecting to GenLayer...</div></div>
-<div id="evout"></div>
-<div class="card">
-<div class="mut"><b>How it works (v1).</b> A buyer locks native GEN against human-readable terms with explicit dispute and final deadlines. Either party appends authenticated evidence, optionally citing a web source URL. The buyer can confirm delivery for an instant release, or anyone can trigger a permissionless timeout - release to the seller if undisputed, refund to the buyer past the final deadline - so funds are never stuck. On a dispute an LLM fetches each cited source and validators reach consensus via the Equivalence Principle; the loser may stake a bond to appeal once, then a replay-safe, appeal-gated payout transfers the held GEN.</div>
-<div class="mut" style="margin-top:10px">Examples: <code>0x829DB851bc9963c71B22305e3b73bf5B220D1462</code> is a contested case resolved REFUND. Paste <code>0x679f4657d126Aa973A070E59654b6B8c37EaA7c0</code> for a fully-settled RELEASE (balance 0). The live v1 contract address will be added here after redeploy.</div>
+<div id="err"></div>
+<div class="grid">
+  <div class="card span2" id="hero"><div class="hint">Paste an escrow address and press Load.</div></div>
+  <div class="card span2" id="timeline" style="display:none"><h3>Lifecycle and deadlines</h3><div id="tlbody"></div></div>
+  <div class="card" id="parties" style="display:none"><h3>Parties</h3><div id="partiesbody"></div></div>
+  <div class="card" id="appeal" style="display:none"><h3>Appeal</h3><div id="appealbody"></div></div>
+  <div class="card span2" id="actions" style="display:none"><h3>Actions</h3><div id="actionsbody" class="actions"></div></div>
+  <div class="card" id="evidence" style="display:none"><h3>Authenticated evidence (append-only)</h3><div id="evbody"></div></div>
+  <div class="card" id="txcard" style="display:none"><h3>Your transactions</h3><div id="feed" class="feed"></div></div>
 </div>
-<div class="foot">Built on GenLayer - <a id="exlink" href="#" target="_blank">View on Explorer</a> - <a href="https://github.com/Artem1981777/genlayer-escrow-dapp" target="_blank">Source</a></div>
+<div class="card span2" style="margin-top:14px">
+  <h3>How it works</h3>
+  <div class="hint">A buyer locks native GEN against human-readable terms with dispute and final deadlines. Either party appends authenticated evidence, optionally citing a web source. The buyer can confirm delivery for an instant release, or anyone can trigger a permissionless timeout so funds never stick. On a dispute an LLM fetches each cited source and validators reach consensus via the Equivalence Principle; the losing party may stake a bond to appeal once, then a replay-safe, appeal-gated payout moves the held GEN.</div>
 </div>
+<div class="sub" style="margin-top:22px;text-align:center">Built on GenLayer - <a id="exlink" href="#" target="_blank">View on Explorer</a> - <a href="https://github.com/Artem1981777/genlayer-escrow-dapp" target="_blank">Source</a></div>
+</div>
+<div id="toasts" class="toasts"></div>
 <script type="module">
-import { createClient } from "https://esm.sh/genlayer-js@latest";
-import { testnetBradbury } from "https://esm.sh/genlayer-js@latest/chains";
-const out = document.getElementById("out");
-const evout = document.getElementById("evout");
-const addrEl = document.getElementById("addr");
-const exlink = document.getElementById("exlink");
-let client;
-try { client = createClient({ chain: testnetBradbury }); } catch (e) { showErr("SDK init failed: " + e.message); }
-function esc(s){ return String(s==null?"":s).replace(/[&<>]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+import { createClient } from "https://esm.sh/genlayer-js@1.1.8";
+import { testnetBradbury } from "https://esm.sh/genlayer-js@1.1.8/chains";
+import { TransactionStatus } from "https://esm.sh/genlayer-js@1.1.8/types";
+
+const CHAIN_ID = 4221, CHAIN_HEX = "0x107d";
+const RPC = "https://rpc-bradbury.genlayer.com";
+const EXPLORER = "https://explorer-bradbury.genlayer.com";
+const NET_PARAMS = { chainId: CHAIN_HEX, chainName: "GenLayer Testnet Bradbury",
+  nativeCurrency: { name: "GEN", symbol: "GEN", decimals: 18 },
+  rpcUrls: [RPC], blockExplorerUrls: [EXPLORER] };
+
+const $ = (id) => document.getElementById(id);
+const addrEl = $("addr"), exlink = $("exlink");
+let reader = null;            // read-only client
+let signer = null;            // wallet-backed client
+let provider = null;          // EIP-1193 provider
+let wallets = [];             // EIP-6963 discovered
+let me = null;                // connected address (lowercase)
+let onChain = false;          // wallet on Bradbury
+let last = { st: null, ev: [] };
+let timer = null;
+
+try { reader = createClient({ chain: testnetBradbury }); } catch (e) { showErr("SDK init failed: " + e.message); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
 function parseMaybe(x){ if(x==null) return null; if(typeof x==="string"){ try{ return JSON.parse(x); }catch(e){ return x; } } if(x instanceof Map){ const o={}; for(const kv of x){ o[kv[0]]=kv[1]; } return o; } return x; }
 function gen(w){ if(w==null||w==="") return "-"; try{ return (Number(w)/1e18).toLocaleString(undefined,{maximumFractionDigits:6})+" GEN"; }catch(e){ return String(w); } }
-function badge(state){ const s=String(state||"unknown").toLowerCase(); const cls={created:"b-created",funded:"b-funded",resolved:"b-resolved",appealed:"b-appealed",paid:"b-paid"}[s]||"b-unknown"; return '<span class="badge '+cls+'">'+esc(s)+'</span>'; }
-function showErr(m){ out.innerHTML='<div class="err">'+esc(m)+'</div>'; evout.innerHTML=""; }
 function short(a){ a=String(a||""); return a.length>16?a.slice(0,10)+"..."+a.slice(-6):a; }
-function row(k,v){ return '<div class="row"><span class="k">'+esc(k)+'</span><span class="v">'+v+'</span></div>'; }
+function isTrue(x){ return x===true||String(x)==="true"; }
+function badge(state){ const s=String(state||"unknown").toLowerCase(); const cls={created:"b-created",funded:"b-funded",resolved:"b-resolved",appealed:"b-appealed",paid:"b-paid"}[s]||"b-unknown"; return '<span class="badge '+cls+'">'+esc(s)+'</span>'; }
 function tsec(x){ if(x==null||x===""||x==="0") return null; const n=Number(x); return (isFinite(n)&&n>0)?n:null; }
 function fmtT(x){ const n=tsec(x); if(n==null) return "-"; try{ return new Date(n*1000).toISOString().replace("T"," ").slice(0,19)+" UTC"; }catch(e){ return String(x); } }
 function fmtDur(s){ s=Math.abs(Math.floor(s)); const D=86400,H=3600,M=60; if(s>=D) return Math.floor(s/D)+"d "+Math.floor((s%D)/H)+"h"; if(s>=H) return Math.floor(s/H)+"h "+Math.floor((s%H)/M)+"m"; if(s>=M) return Math.floor(s/M)+"m "+(s%M)+"s"; return s+"s"; }
-function rel(x, now){ const n=tsec(x), c=tsec(now); if(n==null||c==null) return ""; const d=n-c; if(d===0) return " (now)"; return d>0?(" (in "+fmtDur(d)+")"):(" ("+fmtDur(-d)+" ago)"); }
-function render(rawStatus, rawEv){
- const st=parseMaybe(rawStatus)||{};
- const now=st.chain_now;
- const verdict=st.verdict||"";
- const vr=verdict?'<span class="verdict vr-'+esc(verdict)+'">'+esc(verdict)+'</span>':'<span class="mut">not resolved yet</span>';
- const paid=String(st.payout_done)==="true"||st.payout_done===true;
- const appealed=String(st.appealed)==="true"||st.appealed===true;
- out.innerHTML=row("State", badge(st.state))+row("Held on contract", gen(st.balance_wei))+row("Escrow amount", gen(st.amount_wei))+row("Buyer", esc(st.buyer))+row("Seller", esc(st.seller))+row("Verdict", vr)+row("Reason", st.verdict_reason?esc(st.verdict_reason):'<span class="mut">-</span>')+row("Payout executed", paid?'<span class="ok">Yes - replay-safe</span>':'No')+row("Evidence entries", esc(st.evidence_count));
- let e2='<div class="card"><div class="k" style="margin-bottom:6px">Lifecycle and deadlines</div>';
- e2+=row("Chain time (now)", esc(fmtT(now)));
- e2+=row("Created", esc(fmtT(st.created_at)));
- e2+=row("Dispute window closes", esc(fmtT(st.dispute_deadline)+rel(st.dispute_deadline, now)));
- e2+=row("Final deadline (auto-refund)", esc(fmtT(st.final_deadline)+rel(st.final_deadline, now)));
- if(tsec(st.resolve_time)){ e2+=row("Resolved at", esc(fmtT(st.resolve_time))); }
- if(tsec(st.appeal_deadline)){ e2+=row("Appeal window closes", esc(fmtT(st.appeal_deadline)+rel(st.appeal_deadline, now))); }
- e2+='</div>';
- if(appealed){ e2+='<div class="card"><div class="k" style="margin-bottom:6px">Appeal</div>'+row("Status", '<span class="badge b-appealed">appealed</span>')+row("Appellant", esc(st.appellant))+row("Bond staked", gen(st.appeal_bond_wei))+'</div>'; }
- const ev=parseMaybe(rawEv)||[];
- if(Array.isArray(ev)&&ev.length){
-  e2+='<div class="card"><div class="k" style="margin-bottom:6px">Authenticated evidence (append-only)</div>';
-  for(const e of ev){ const role=String(e.role||"").toLowerCase(); const u=e.url?(' <a href="'+esc(e.url)+'" target="_blank" rel="noopener">source</a>'):''; e2+='<div class="ev"><span class="role role-'+esc(role)+'">'+esc(e.role)+'</span> <span class="who">'+esc(short(e.submitter))+'</span>'+u+'<div class="txt">'+esc(e.content)+'</div></div>'; }
-  e2+='</div>';
- }
- evout.innerHTML=e2;
+function rel(x,now){ const n=tsec(x),c=tsec(now); if(n==null||c==null) return ""; const d=n-c; if(d===0) return " (now)"; return d>0?(" (in "+fmtDur(d)+")"):(" ("+fmtDur(-d)+" ago)"); }
+function eq(a,b){ return String(a||"").toLowerCase()===String(b||"").toLowerCase(); }
+function showErr(m){ $("err").innerHTML='<div class="err">'+esc(m)+'</div>'; }
+function clearErr(){ $("err").innerHTML=""; }
+const txs = [];  // real submitted txs: {hash, label, status}
+function toast(msg, kind){ const t=document.createElement("div"); t.className="toast"+(kind?(" "+kind):""); t.textContent=msg; $("toasts").appendChild(t); setTimeout(()=>{ t.style.opacity="0"; setTimeout(()=>t.remove(),300); }, kind==="bad"?7000:4500); }
+function exTx(h){ return EXPLORER+"/tx/"+h; }
+function renderFeed(){
+  if(!txs.length){ $("txcard").style.display="none"; return; }
+  $("txcard").style.display="";
+  let h="";
+  for(const t of txs.slice().reverse()){
+    const cls=t.status==="done"?"done":(t.status==="err"?"err":"pending");
+    const label=t.status==="done"?"finished":(t.status==="err"?"failed":"pending");
+    h+='<div class="item"><span><a class="mono" href="'+exTx(t.hash)+'" target="_blank" rel="noopener">'+short(t.hash)+'</a> - '+esc(t.label)+'</span><span class="st '+cls+'">'+label+'</span></div>';
+  }
+  $("feed").innerHTML=h;
+}
+function trackTx(hash, label){ const rec={ hash, label, status:"pending" }; txs.push(rec); renderFeed(); return rec; }
+function discoverWallets(){
+  wallets = [];
+  window.addEventListener("eip6963:announceProvider", (ev) => {
+    const d = ev.detail;
+    if (d && d.provider && !wallets.some(w => w.info.uuid === d.info.uuid)) wallets.push(d);
+  });
+  window.dispatchEvent(new Event("eip6963:requestProvider"));
+}
+function pickWallet(){
+  if (wallets.length) return wallets;
+  if (window.ethereum){
+    const list = window.ethereum.providers && window.ethereum.providers.length ? window.ethereum.providers : [window.ethereum];
+    return list.map((p, i) => ({ info: { uuid: "injected-"+i, name: p.isMetaMask ? "MetaMask" : "Injected Wallet" }, provider: p }));
+  }
+  return [];
+}
+discoverWallets();
+async function ensureNetwork(){
+  try{
+    const cur = await provider.request({ method: "eth_chainId" });
+    if (String(cur).toLowerCase() === CHAIN_HEX) return true;
+    try{ await provider.request({ method: "wallet_switchEthereumChain", params: [{ chainId: CHAIN_HEX }] }); }
+    catch(e){ if (e && e.code === 4902) await provider.request({ method: "wallet_addEthereumChain", params: [NET_PARAMS] }); else throw e; }
+    const now = await provider.request({ method: "eth_chainId" });
+    return String(now).toLowerCase() === CHAIN_HEX;
+  }catch(e){ return false; }
+}
+function bindProviderEvents(){
+  if (!provider || provider._escrowBound) return; provider._escrowBound = true;
+  provider.on && provider.on("accountsChanged", (a)=>{ me = a && a[0] ? a[0].toLowerCase() : null; if(!me){ signer=null; } refreshWalletUI(); render(); });
+  provider.on && provider.on("chainChanged", async ()=>{ onChain = await ensureNetwork(); rebuildSigner(); refreshWalletUI(); render(); });
+}
+function rebuildSigner(){ signer = (provider && me && onChain) ? createClient({ chain: testnetBradbury, account: me, provider }) : null; }
+async function connect(){
+  const list = pickWallet();
+  if (!list.length){ showErr("No EIP-1193 wallet found. Install MetaMask or a compatible wallet."); return; }
+  const chosen = list[0];
+  provider = chosen.provider;
+  try{
+    const accs = await provider.request({ method: "eth_requestAccounts" });
+    me = accs && accs[0] ? accs[0].toLowerCase() : null;
+    onChain = await ensureNetwork();
+    bindProviderEvents(); rebuildSigner(); refreshWalletUI();
+    toast("Connected " + short(me) + (onChain?"":" (wrong network)"), onChain?"ok":"bad");
+    render();
+  }catch(e){ showErr("Wallet connect failed: " + (e && e.message ? e.message : e)); }
+}
+function refreshWalletUI(){
+  const pill = $("netpill"), txt = $("nettext"), btn = $("connect");
+  pill.className = "pill" + (me ? (onChain ? " ok" : " bad") : "");
+  if (!me){ txt.textContent = "Not connected"; btn.textContent = "Connect Wallet"; }
+  else if (!onChain){ txt.textContent = "Wrong network"; btn.textContent = "Switch to Bradbury"; }
+  else { txt.textContent = "Bradbury - " + short(me); btn.textContent = short(me); }
 }
 async function load(){
- const address=addrEl.value.trim();
- exlink.href="https://explorer-bradbury.genlayer.com/address/"+address;
- if(!client){ return; }
- out.innerHTML='<div class="load"><img src="genlayer-spinner.svg" alt=""> Reading get_status()...</div>';
- evout.innerHTML="";
- try{
-  const stStr=await client.readContract({ address, functionName:"get_status", args:[] });
-  let evStr="[]";
-  try{ evStr=await client.readContract({ address, functionName:"get_evidence", args:[] }); }catch(e){}
-  render(stStr, evStr);
- }catch(e){ showErr("Read failed: "+(e && e.message ? e.message : e)); }
+  const address = addrEl.value.trim();
+  exlink.href = EXPLORER + "/address/" + address;
+  if (!reader){ return; }
+  if (!/^0x[0-9a-fA-F]{40}$/.test(address)){ showErr("Enter a valid 0x contract address."); return; }
+  clearErr();
+  try{
+    const stStr = await reader.readContract({ address, functionName: "get_status", args: [] });
+    let evStr = "[]";
+    try{ evStr = await reader.readContract({ address, functionName: "get_evidence", args: [] }); }catch(e){}
+    last.st = parseMaybe(stStr) || {};
+    last.ev = parseMaybe(evStr) || [];
+    render();
+  }catch(e){ showErr("Read failed: " + (e && e.message ? e.message : e)); }
 }
-let timer=null;
-document.getElementById("load").onclick=load;
-document.getElementById("auto").onclick=function(){ if(timer){ clearInterval(timer); timer=null; this.textContent="Auto: off"; } else { timer=setInterval(load,5000); this.textContent="Auto: on"; load(); } };
+function render(){
+  const st = last.st; if (!st){ return; }
+  const now = st.chain_now;
+  const bal = Number(st.balance_wei||0), amt = Number(st.amount_wei||0);
+  const pct = amt>0 ? Math.max(0, Math.min(100, Math.round(bal/amt*100))) : 0;
+  const verdict = st.verdict || "";
+  const vr = verdict ? '<span class="verdict vr-'+esc(verdict)+'">'+esc(verdict)+'</span>' : '<span class="hint">not resolved yet</span>';
+  $("hero").innerHTML =
+    '<div class="hero"><div>'+badge(st.state)+'</div>'+
+    '<div><div class="amt">'+gen(st.amount_wei)+'</div><div class="hint">escrow amount</div></div>'+
+    '<span class="grow"></span><div style="text-align:right">'+vr+'<div class="hint">'+(isTrue(st.payout_done)?'<span class="role-seller">paid out - replay-safe</span>':'held in custody')+'</div></div></div>'+
+    '<div class="gauge"><span style="width:'+pct+'%"></span></div>'+
+    '<div class="hint" style="margin-top:6px">Held on contract: '+gen(st.balance_wei)+' / '+gen(st.amount_wei)+' ('+pct+'%)</div>';
+  const tag = (a)=> (me && eq(a,me)) ? '<span class="you">YOU</span>' : '';
+  $("parties").style.display=""; 
+  $("partiesbody").innerHTML =
+    '<div class="row"><span class="k">Buyer</span><span class="v mono">'+esc(short(st.buyer))+tag(st.buyer)+'</span></div>'+
+    '<div class="row"><span class="k">Seller</span><span class="v mono">'+esc(short(st.seller))+tag(st.seller)+'</span></div>'+
+    '<div class="row"><span class="k">Evidence entries</span><span class="v">'+esc(st.evidence_count)+'</span></div>'+
+    (st.verdict_reason?'<div class="row"><span class="k">Reason</span><span class="v">'+esc(st.verdict_reason)+'</span></div>':'');
+  renderTimeline(st, now); renderAppeal(st); renderEvidence(); renderActions(st); renderFeed();
+}
+function renderTimeline(st, now){
+  $("timeline").style.display="";
+  const c0 = tsec(st.created_at), nowS = tsec(now);
+  const marks = [
+    { t: tsec(st.dispute_deadline), c: "var(--blue)", k: "Dispute closes" },
+    { t: tsec(st.final_deadline),   c: "var(--acc)",  k: "Final (auto-refund)" },
+    { t: tsec(st.appeal_deadline),  c: "var(--pink)", k: "Appeal closes" }
+  ].filter(m=>m.t);
+  let bar = '<div class="tl">';
+  if (c0 && nowS){
+    const end = Math.max(nowS, ...marks.map(m=>m.t), c0+1);
+    const span = end - c0 || 1;
+    const fp = Math.max(0, Math.min(100, (nowS - c0)/span*100));
+    bar += '<div class="fill" style="width:'+fp+'%"></div>';
+    for (const m of marks){ const p = Math.max(0, Math.min(100, (m.t - c0)/span*100)); bar += '<i style="left:'+p+'%;background:'+m.c+'"></i>'; }
+  }
+  bar += '</div><div class="tlk"><span>Created '+esc(fmtT(st.created_at))+'</span><span>now '+esc(fmtT(now))+'</span></div>';
+  let rows = '<div class="row"><span class="k">Chain time (now)</span><span class="v">'+esc(fmtT(now))+'</span></div>';
+  for (const m of marks){ rows += '<div class="row"><span class="k">'+esc(m.k)+'</span><span class="v">'+esc(fmtT(m.t)+rel(m.t, now))+'</span></div>'; }
+  if (tsec(st.resolve_time)) rows += '<div class="row"><span class="k">Resolved at</span><span class="v">'+esc(fmtT(st.resolve_time))+'</span></div>';
+  $("tlbody").innerHTML = bar + rows;
+}
+function renderAppeal(st){
+  if (!isTrue(st.appealed)){ $("appeal").style.display="none"; return; }
+  $("appeal").style.display="";
+  $("appealbody").innerHTML =
+    '<div class="row"><span class="k">Status</span><span class="v"><span class="badge b-appealed">appealed</span></span></div>'+
+    '<div class="row"><span class="k">Appellant</span><span class="v mono">'+esc(short(st.appellant))+'</span></div>'+
+    '<div class="row"><span class="k">Bond staked</span><span class="v">'+gen(st.appeal_bond_wei)+'</span></div>';
+}
+function renderEvidence(){
+  const ev = last.ev;
+  if (!Array.isArray(ev) || !ev.length){ $("evidence").style.display="none"; return; }
+  $("evidence").style.display="";
+  let h="";
+  for (const e of ev){ const role=String(e.role||"").toLowerCase(); const u=e.url?(' <a href="'+esc(e.url)+'" target="_blank" rel="noopener">source</a>'):''; h+='<div class="ev"><span class="role role-'+esc(role)+'">'+esc(e.role)+'</span> <span class="who mono">'+esc(short(e.submitter))+'</span>'+u+'<div class="txt">'+esc(e.content)+'</div></div>'; }
+  $("evbody").innerHTML=h;
+}
+function btn(id, label, cls){ return '<button id="'+id+'" class="sm'+(cls?(" "+cls):"")+'">'+label+'</button>'; }
+function renderActions(st){
+  $("actions").style.display="";
+  const body = $("actionsbody");
+  if (!me){ body.innerHTML='<div class="hint">Connect a wallet to fund, submit evidence, resolve, appeal, or pay out.</div>'; return; }
+  if (!onChain){ body.innerHTML='<div class="hint">Wallet is on the wrong network. Click "Switch to Bradbury" above.</div>'; return; }
+  const state = String(st.state||"").toLowerCase();
+  const isBuyer = eq(st.buyer, me), isSeller = eq(st.seller, me);
+  const now = tsec(st.chain_now), disp = tsec(st.dispute_deadline), fin = tsec(st.final_deadline), app = tsec(st.appeal_deadline);
+  const timeoutReady = state==="funded" && now && ((disp && now>=disp) || (fin && now>=fin));
+  const payoutReady = state==="resolved" && (!app || (now && now>=app)) && !isTrue(st.payout_done);
+  let h = "";
+  if (state==="created" && isBuyer) h += '<div class="g">'+btn("a-fund","Fund escrow ("+gen(st.amount_wei)+")")+'</div>';
+  if (state==="funded"){
+    h += '<div class="g"><input id="ev-content" placeholder="evidence text"><input id="ev-url" placeholder="optional https source url"></div>';
+    h += '<div class="g">'+btn("a-ev","Submit evidence")+(isBuyer?btn("a-confirm","Confirm delivery (release)","ghost"):"")+btn("a-resolve","Resolve via AI arbiter","ghost")+btn("a-timeout","Claim timeout","ghost")+'</div>';
+    if (!timeoutReady) h += '<div class="hint">Timeout becomes claimable after a deadline passes.</div>';
+  }
+  if (state==="resolved"){
+    const loserIsMe = (verdictLoser(st)) && eq(verdictLoser(st), me);
+    h += '<div class="g">'+(loserIsMe && !isTrue(st.appealed)?btn("a-appeal","Appeal (stake "+gen(st.amount_wei)+" bond)"):"")+btn("a-payout","Pay out","ghost")+'</div>';
+    if (!payoutReady) h += '<div class="hint">Payout unlocks after the appeal window closes.</div>';
+  }
+  if (state==="appealed") h += '<div class="g">'+btn("a-resolve-appeal","Resolve appeal")+'</div>';
+  if (isTrue(st.payout_done)) h += '<div class="hint">This escrow is fully settled (paid out).</div>';
+  body.innerHTML = h || '<div class="hint">No actions available for your address in this state.</div>';
+  wireActions(st, { isBuyer, isSeller, timeoutReady, payoutReady });
+}
+function verdictLoser(st){ const v=String(st.verdict||""); if(v==="RELEASE") return st.buyer; if(v==="REFUND") return st.seller; return null; }
+async function sendTx(label, fn){
+  if (!signer){ toast("Connect wallet on Bradbury first", "bad"); return; }
+  let rec=null;
+  try{
+    const args = fn();
+    toast(label + ": confirm in wallet...");
+    const hash = await signer.writeContract(Object.assign({ address: addrEl.value.trim() }, args));
+    rec = trackTx(hash, label);
+    toast(label + " sent: " + short(hash));
+    await signer.waitForTransactionReceipt({ hash, status: TransactionStatus.ACCEPTED, retries: 40 });
+    let ok = true;
+    try{ const tx = await signer.getTransaction({ hash }); const r=String(tx && tx.txExecutionResultName||""); ok = !/ERROR|NOT_VOTED/.test(r); }catch(e){}
+    rec.status = ok ? "done" : "err"; renderFeed();
+    toast(label + (ok?" finished":" failed on-chain"), ok?"ok":"bad");
+    await load();
+  }catch(e){ if(rec){ rec.status="err"; renderFeed(); } toast(label+" failed: "+(e && e.message?e.message:e), "bad"); }
+}
+function on(id, cb){ const el=$(id); if(el) el.onclick=cb; }
+function wireActions(st, ctx){
+  on("a-fund", ()=> sendTx("Fund", ()=>({ functionName:"fund", args:[], value: BigInt(st.amount_wei) })));
+  on("a-confirm", ()=> sendTx("Confirm delivery", ()=>({ functionName:"confirm_delivery", args:[] })));
+  on("a-resolve", ()=> sendTx("Resolve", ()=>({ functionName:"resolve", args:[] })));
+  on("a-timeout", ()=> sendTx("Claim timeout", ()=>({ functionName:"claim_timeout", args:[] })));
+  on("a-payout", ()=> sendTx("Payout", ()=>({ functionName:"payout", args:[] })));
+  on("a-resolve-appeal", ()=> sendTx("Resolve appeal", ()=>({ functionName:"resolve_appeal", args:[] })));
+  on("a-appeal", ()=> sendTx("Appeal", ()=>({ functionName:"appeal", args:[], value: BigInt(st.amount_wei) })));
+  on("a-ev", ()=> sendTx("Submit evidence", ()=>{ const c=($("ev-content").value||"").trim(); const u=($("ev-url").value||"").trim(); if(!c) throw new Error("evidence text is required"); if(u && !/^https?:\/\//i.test(u)) throw new Error("source url must be http(s)"); return { functionName:"submit_evidence", args:[c, u] }; }));
+}
+$("connect").onclick = connect;
+$("load").onclick = load;
+$("auto").onclick = function(){
+  if (timer){ clearInterval(timer); timer=null; this.textContent="Auto: off"; }
+  else { timer=setInterval(load, 6000); this.textContent="Auto: on"; load(); }
+};
+addrEl.addEventListener("keydown", (e)=>{ if(e.key==="Enter") load(); });
+refreshWalletUI();
 load();
 </script>
 </body>

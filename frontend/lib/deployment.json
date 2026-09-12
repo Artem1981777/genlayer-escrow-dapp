@@ -1,0 +1,8 @@
+{
+  "version": "v3.0.0",
+  "chain": "bradbury",
+  "status": "PENDING",
+  "deployTx": "0x524352349da5ef727d4028138c51dd3d25c48095a9520d00ee22de2623f936f8",
+  "note": "deploy tx submitted; awaiting Bradbury consensus",
+  "checkedAt": "2026-09-12T19:58:17.826Z"
+}

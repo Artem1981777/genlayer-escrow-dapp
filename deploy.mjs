@@ -7,12 +7,15 @@ if (!PRIVATE_KEY) { throw new Error("PRIVATE_KEY not found. Run: node --env-file
 const SELLER = "0xdc6778C5F8cC74b10aED11c48306D4Cfc5737FBD";
 const AMOUNT_WEI = 1000000000000000;
 const TERMS = "Deliver the agreed digital asset to the buyer. RELEASE to seller if delivered as described; REFUND to buyer if not delivered or not as described.";
+const DISPUTE_WINDOW_SECS = 259200;
+const FINAL_WINDOW_SECS = 604800;
+const APPEAL_WINDOW_SECS = 172800;
 const source = readFileSync("contracts/escrow_arbiter.py", "utf8");
 const code = new TextEncoder().encode(source);
 const account = createAccount(PRIVATE_KEY);
 const client = createClient({ chain: testnetBradbury, account });
 console.log("Deploying EscrowArbiter...");
-const txHash = await client.deployContract({ code, args: [SELLER, AMOUNT_WEI, TERMS] });
+const txHash = await client.deployContract({ code, args: [SELLER, AMOUNT_WEI, TERMS, DISPUTE_WINDOW_SECS, FINAL_WINDOW_SECS, APPEAL_WINDOW_SECS] });
 console.log("deploy tx:", txHash);
 await client.waitForTransactionReceipt({ hash: txHash, status: TransactionStatus.ACCEPTED, retries: 300 });
 const tx = await client.getTransaction({ hash: txHash });

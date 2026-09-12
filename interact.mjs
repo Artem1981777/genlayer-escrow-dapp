@@ -5,7 +5,7 @@ import { TransactionStatus } from "genlayer-js/types";
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
 if (!PRIVATE_KEY) { throw new Error("PRIVATE_KEY not found. Run: node --env-file=.env interact.mjs"); }
 const CONTRACT = readFileSync("contract.txt", "utf8").trim();
-const EVIDENCE_URL = "https://raw.githubusercontent.com/Artem1981777/genlayer-ai-escrow/main/README.md";
+const EVIDENCE_URL = "https://raw.githubusercontent.com/Artem1981777/genlayer-escrow-dapp/main/README.md";
 console.log("CONTRACT:", CONTRACT);
 const account = createAccount(PRIVATE_KEY);
 const client = createClient({ chain: testnetBradbury, account });
@@ -13,7 +13,7 @@ console.log("=== 1) READ STATE (before) ===");
 const before = await client.readContract({ address: CONTRACT, functionName: "get_state", args: [] });
 console.log(before);
 console.log("=== 2) SUBMIT EVIDENCE ===");
-const h1 = await client.writeContract({ address: CONTRACT, functionName: "submit_evidence", args: [EVIDENCE_URL], value: 0 });
+const h1 = await client.writeContract({ address: CONTRACT, functionName: "submit_evidence", args: ["BUYER: see attached source for delivery status", EVIDENCE_URL], value: 0 });
 console.log("submit_evidence tx:", h1);
 await client.waitForTransactionReceipt({ hash: h1, status: TransactionStatus.ACCEPTED, retries: 200 });
 console.log("evidence accepted");

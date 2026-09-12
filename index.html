@@ -90,6 +90,11 @@ input:focus,textarea:focus{outline:0;border-color:var(--acc)}
   <button id="load">Load</button>
   <button id="auto" class="ghost sm">Auto: off</button>
 </div>
+<div class="bar" style="margin-top:-10px">
+  <span class="hint" style="align-self:center">Live examples:</span>
+  <button class="preset ghost sm" data-addr="0x829DB851bc9963c71B22305e3b73bf5B220D1462">REFUND case</button>
+  <button class="preset ghost sm" data-addr="0x679f4657d126Aa973A070E59654b6B8c37EaA7c0">RELEASE (settled)</button>
+</div>
 <div id="err"></div>
 <div class="grid">
   <div class="card span2" id="hero"><div class="hint">Paste an escrow address and press Load.</div></div>
@@ -347,6 +352,7 @@ function wireActions(st, ctx){
 }
 $("connect").onclick = connect;
 $("load").onclick = load;
+document.querySelectorAll(".preset").forEach(function(b){ b.onclick=function(){ addrEl.value=b.getAttribute("data-addr"); load(); }; });
 $("auto").onclick = function(){
   if (timer){ clearInterval(timer); timer=null; this.textContent="Auto: off"; }
   else { timer=setInterval(load, 6000); this.textContent="Auto: on"; load(); }

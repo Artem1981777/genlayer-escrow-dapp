@@ -5,3 +5,7 @@ contract.txt
 node_modules
 seller-key.txt
 seller-addr.txt
+__pycache__/
+*.pyc
+.pytest_cache/
+artifacts/

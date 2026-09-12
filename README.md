@@ -1,6 +1,6 @@
 # AIEscrowArbiter - Trust-minimized AI Escrow on GenLayer
 
-[![GenLayer](https://img.shields.io/badge/GenLayer-Bradbury%20testnet-6c5ce7)](https://explorer-bradbury.genlayer.com/address/0x829DB851bc9963c71B22305e3b73bf5B220D1462) [![Live dApp](https://img.shields.io/badge/live-dApp-00b894)](https://artem1981777.github.io/genlayer-escrow-dapp/) [![Version](https://img.shields.io/badge/contract-v2.0-brightgreen)](CHANGELOG.md) [![Intelligent Contract](https://img.shields.io/badge/Intelligent%20Contract-Python-3776ab)](contracts/escrow_arbiter.py)
+[![CI](https://github.com/Artem1981777/genlayer-escrow-dapp/actions/workflows/ci.yml/badge.svg)](https://github.com/Artem1981777/genlayer-escrow-dapp/actions/workflows/ci.yml) [![GenLayer](https://img.shields.io/badge/GenLayer-Bradbury%20testnet-6c5ce7)](https://explorer-bradbury.genlayer.com/address/0x829DB851bc9963c71B22305e3b73bf5B220D1462) [![Live dApp](https://img.shields.io/badge/live-dApp-00b894)](https://artem1981777.github.io/genlayer-escrow-dapp/) [![Version](https://img.shields.io/badge/contract-v2.0-brightgreen)](CHANGELOG.md) [![Intelligent Contract](https://img.shields.io/badge/Intelligent%20Contract-Python-3776ab)](contracts/escrow_arbiter.py)
 
 > An on-chain escrow that holds real native GEN and resolves disputes with a validator-run LLM that verifies cited web sources - finalized by the GenLayer Equivalence Principle. No oracle, no human arbiter, no owner who can freeze funds.
 

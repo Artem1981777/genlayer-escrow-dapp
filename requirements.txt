@@ -1,0 +1,4 @@
+# GenLayer v3 tooling. Run on Linux x86 (CI) or GLSim host.
+# NOTE: Termux/Android cannot build native deps (pydantic-core/rust, numpy); use CI.
+genlayer-test>=0.29.2
+genvm-linter>=0.11.0

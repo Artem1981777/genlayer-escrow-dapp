@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# [LEGACY v1] Superseded by contracts/escrow_arbiter_v3.py and tests/direct/ (v3). Reference only.
 # Deterministic reference simulation of contracts/escrow_arbiter.py (EscrowArbiter v1).
 # Mirrors the on-chain lifecycle exactly: same state machine, same guard messages.
 # A controllable clock, explicit senders/values, and a deterministic stand-in for

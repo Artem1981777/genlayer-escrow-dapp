@@ -1,10 +1,15 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { Header } from "@/components/Header";
+import { Hero } from "@/components/Hero";
+import { Features } from "@/components/Features";
+import { HowItWorks } from "@/components/HowItWorks";
+import { LivePanel } from "@/components/LivePanel";
+import { Footer } from "@/components/Footer";
 import { StatsBar } from "@/components/StatsBar";
 import { EscrowCard } from "@/components/EscrowCard";
 import { CreateEscrow } from "@/components/CreateEscrow";
-import { CONTRACT_ADDRESS, IS_DEPLOYED, DEPLOYMENT } from "@/lib/config";
+import { CONTRACT_ADDRESS, DEPLOYMENT, CHAIN } from "@/lib/config";
 import { connectWallet, onWalletEvents } from "@/lib/wallet";
 import { readView, writeTx } from "@/lib/gl";
 
@@ -53,26 +58,39 @@ export default function Page() {
   const create = async (args: any[]) => { await run("Create escrow", "create_escrow", args, 0n); };
 
   return (
-    <main className="mx-auto max-w-5xl px-4 pb-20">
+    <>
       <Header address={address} onConnect={connect} />
-      {!IS_DEPLOYED && (
-        <div className="mt-4 rounded-xl border p-4 text-sm" style={{ borderColor: "var(--color-warn)", color: "var(--color-warn)", background: "color-mix(in srgb, var(--color-warn) 10%, transparent)" }}>
-          v3 contract status: <b>{DEPLOYMENT.status ?? "not deployed"}</b>. Bradbury validators are not finalizing transactions yet; the dashboard will go live automatically once deployments.json holds the v3 address.
-        </div>
-      )}
-      <div className="mt-6"><StatsBar stats={stats} /></div>
-      {address && addr && <div className="mt-6"><CreateEscrow busy={busy} onCreate={create} /></div>}
-      <div className="mt-6 grid gap-4 sm:grid-cols-2">
-        {escrows.map((e) => (
-          <EscrowCard key={String(e.id)} e={e} address={address} busy={busy} onAction={run} onEvidence={onEvidence} />
-        ))}
-      </div>
-      {addr && escrows.length === 0 && (
-        <div className="mt-6 text-center text-sm text-[var(--color-muted)]">No escrows yet. Create the first one above.</div>
-      )}
+      <Hero address={address} onConnect={connect} />
+      <Features />
+      <HowItWorks />
+      <section id="app" className="container py-16">
+        <h2 className="text-center text-3xl font-bold">Escrow dashboard</h2>
+        <p className="mx-auto mt-3 max-w-2xl text-center text-[var(--color-muted)]">Create and manage escrows directly against the on-chain contract.</p>
+        {!addr ? (
+          <div className="card mt-10 p-8 text-center">
+            <div className="text-lg font-semibold" style={{ color: "var(--color-warn)" }}>dApp activates when v3 is live</div>
+            <p className="mx-auto mt-2 max-w-xl text-sm text-[var(--color-muted)]">The v3 contract deploy is {DEPLOYMENT.status ?? "pending"} on {CHAIN.name}. Once the address is recorded, this dashboard becomes fully interactive - the site does not need a redeploy.</p>
+          </div>
+        ) : (
+          <>
+            <div className="mt-10"><StatsBar stats={stats} /></div>
+            {address
+              ? <div className="mt-6"><CreateEscrow busy={busy} onCreate={create} /></div>
+              : <div className="card mt-6 p-6 text-center text-sm text-[var(--color-muted)]">Connect your wallet to create an escrow.</div>}
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              {escrows.map((e) => (
+                <EscrowCard key={String(e.id)} e={e} address={address} busy={busy} onAction={run} onEvidence={onEvidence} />
+              ))}
+            </div>
+            {escrows.length === 0 && <div className="mt-6 text-center text-sm text-[var(--color-muted)]">No escrows yet. Create the first one above.</div>}
+          </>
+        )}
+      </section>
+      <LivePanel />
+      <Footer />
       {msg && (
         <div className="fixed inset-x-0 bottom-4 mx-auto w-fit max-w-[90vw] truncate rounded-lg border border-white/10 bg-[var(--color-panel2)] px-4 py-2 text-xs" onClick={() => setMsg("")}>{msg}</div>
       )}
-    </main>
+    </>
   );
 }

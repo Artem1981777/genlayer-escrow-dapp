@@ -191,12 +191,8 @@ class EscrowArbiter(gl.Contract):
             appeal_window_secs=u256(appeal_window_secs),
         )
         self.escrows[eid] = e
-        if buyer not in self.by_buyer:
-            self.by_buyer[buyer] = DynArray[u256]()
-        self.by_buyer[buyer].append(eid)
-        if seller not in self.by_seller:
-            self.by_seller[seller] = DynArray[u256]()
-        self.by_seller[seller].append(eid)
+        self.by_buyer.get_or_insert_default(buyer).append(eid)
+        self.by_seller.get_or_insert_default(seller).append(eid)
         self.next_id = u256(int(eid) + 1)
         self.total_count = u256(int(self.total_count) + 1)
         return json.dumps({"id": int(eid)})
@@ -244,9 +240,7 @@ class EscrowArbiter(gl.Contract):
             submitter=gl.message.sender_address, role=role,
             content=content, url=url, round=u256(rnd), ts=u256(now))
         eid = u256(escrow_id)
-        if eid not in self.evidence:
-            self.evidence[eid] = DynArray[EvidenceItem]()
-        self.evidence[eid].append(item)
+        self.evidence.get_or_insert_default(eid).append(item)
         return json.dumps({"count": self._count_evidence(eid, role, rnd)})
 
     @gl.public.write

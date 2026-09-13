@@ -3,7 +3,11 @@ CONTRACT = "contracts/escrow_arbiter_v3.py"
 DW=259200; FW=604800; AW=172800; AMOUNT=1000
 
 def _hex(a):
-    return a.as_hex if hasattr(a,"as_hex") else a
+    if hasattr(a, "as_hex"): return a.as_hex
+    if isinstance(a, (bytes, bytearray)):
+        from eth_utils import to_checksum_address
+        return to_checksum_address(bytes(a))
+    return a
 
 def deploy(vm, dep, owner=None, fee=0, frec=""):
     if owner is not None: vm.sender = owner

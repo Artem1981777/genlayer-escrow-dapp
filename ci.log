@@ -1,0 +1,96 @@
+##[group]Run pytest tests/direct -v
+^[[36;1mpytest tests/direct -v^[[0m
+shell: /usr/bin/bash -e {0}
+env:
+  pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+  PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+  Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+  Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+  Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+  LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+##[endgroup]
+INFO: File `gltest.config.yaml` found in the current directory, using it
+INFO: Using the following configuration:
+INFO:   RPC URL: http://127.0.0.1:4000/api
+INFO:   Selected Network: localnet
+INFO:   Available networks: ['localnet']
+INFO:   Selected chain type: localnet
+INFO:   Available chains: localnet, studionet, testnet_asimov, testnet_bradbury
+INFO:   Contracts directory: contracts
+INFO:   Artifacts directory: artifacts
+INFO:   Environment: .env
+INFO:   Default wait interval: 3000 ms
+INFO:   Default wait retries: 50
+INFO:   Leader only mode: False
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0 -- /opt/hostedtoolcache/Python/3.12.14/x64/bin/python
+cachedir: .pytest_cache
+rootdir: /home/runner/work/genlayer-escrow-dapp/genlayer-escrow-dapp
+plugins: genlayer-test-0.29.2
+collecting ... collected 41 items
+
+tests/direct/test_appeal.py::test_appeal_opens PASSED                    [  2%]
+tests/direct/test_appeal.py::test_appeal_changed PASSED                  [  4%]
+tests/direct/test_appeal.py::test_appeal_wrong_party PASSED              [  7%]
+tests/direct/test_appeal.py::test_appeal_wrong_bond PASSED               [  9%]
+tests/direct/test_arbitration.py::test_resolve_verdicts[RELEASE-10000] PASSED [ 12%]
+tests/direct/test_arbitration.py::test_resolve_verdicts[REFUND-0] PASSED [ 14%]
+tests/direct/test_arbitration.py::test_resolve_verdicts[SPLIT-6000] PASSED [ 17%]
+tests/direct/test_arbitration.py::test_split_payout PASSED               [ 19%]
+tests/direct/test_arbitration.py::test_resolve_with_web PASSED           [ 21%]
+tests/direct/test_arbitration.py::test_validator_agrees PASSED           [ 24%]
+tests/direct/test_arbitration.py::test_validator_disagrees PASSED        [ 26%]
+tests/direct/test_guards.py::test_create_guards[case0] PASSED            [ 29%]
+tests/direct/test_guards.py::test_create_guards[case1] PASSED            [ 31%]
+tests/direct/test_guards.py::test_create_guards[case2] PASSED            [ 34%]
+tests/direct/test_guards.py::test_create_guards[case3] PASSED            [ 36%]
+tests/direct/test_guards.py::test_create_guards[case4] PASSED            [ 39%]
+tests/direct/test_guards.py::test_create_guards[case5] PASSED            [ 41%]
+tests/direct/test_guards.py::test_create_guards[case6] PASSED            [ 43%]
+tests/direct/test_guards.py::test_fund_only_buyer PASSED                 [ 46%]
+tests/direct/test_guards.py::test_fund_wrong_amount PASSED               [ 48%]
+tests/direct/test_guards.py::test_fund_twice PASSED                      [ 51%]
+tests/direct/test_guards.py::test_missing_escrow PASSED                  [ 53%]
+tests/direct/test_guards.py::test_dispute_needs_funded PASSED            [ 56%]
+tests/direct/test_guards.py::test_evidence_only_party PASSED             [ 58%]
+tests/direct/test_guards.py::test_evidence_wrong_state PASSED            [ 60%]
+tests/direct/test_guards.py::test_resolve_needs_dispute PASSED           [ 63%]
+tests/direct/test_guards.py::test_payout_before_resolve PASSED           [ 65%]
+tests/direct/test_guards.py::test_appeal_needs_resolved PASSED           [ 68%]
+tests/direct/test_guards.py::test_confirm_only_buyer PASSED              [ 70%]
+tests/direct/test_lifecycle.py::test_create_id0 PASSED                   [ 73%]
+tests/direct/test_lifecycle.py::test_status_after_create FAILED          [ 75%]
+tests/direct/test_lifecycle.py::test_fund PASSED                         [ 78%]
+tests/direct/test_lifecycle.py::test_confirm_release PASSED              [ 80%]
+tests/direct/test_lifecycle.py::test_timeout_release PASSED              [ 82%]
+tests/direct/test_lifecycle.py::test_timeout_refund PASSED               [ 85%]
+tests/direct/test_views_stats.py::test_stats_after_fund PASSED           [ 87%]
+tests/direct/test_views_stats.py::test_list_escrows PASSED               [ 90%]
+tests/direct/test_views_stats.py::test_list_by_party PASSED              [ 92%]
+tests/direct/test_views_stats.py::test_get_evidence PASSED               [ 95%]
+tests/direct/test_views_stats.py::test_status_balance PASSED             [ 97%]
+tests/direct/test_views_stats.py::test_stats_disputed PASSED             [100%]
+
+=================================== FAILURES ===================================
+___________________________ test_status_after_create ___________________________
+
+direct_vm = VMContext(_sender=b'+\xd8\x06\xc9\x7f\x0e\x00\xaf\x1a\x1f\xc32\x8f\xa7c\xa9&\x97#\xc8', _origin=None, _contract_addres...m_mocks_hit=set(), _live_web_handler=None, _live_llm_handler=None, _gl_call_hook=None, _traces=[], _trace_enabled=True)
+direct_deploy = <function direct_deploy.<locals>._deploy at 0x7f6b88927c40>
+direct_alice = b'+\xd8\x06\xc9\x7f\x0e\x00\xaf\x1a\x1f\xc32\x8f\xa7c\xa9&\x97#\xc8'
+direct_bob = b'\x81\xb67\xd8\xfc\xd2\xc6\xdacY\xe6\x961\x13\xa1\x17\r\xe7\x95\xe4'
+
+    def test_status_after_create(direct_vm, direct_deploy, direct_alice, direct_bob):
+        c = deploy(direct_vm, direct_deploy)
+        e = mk(direct_vm, c, direct_alice, direct_bob)
+        s = st(c, e)
+        assert s["state"] == "CREATED"
+>       assert s["buyer"] == _hex(direct_alice)
+E       AssertionError: assert '0x2bd806c97F0e00aF1a1fC3328fA763a9269723C8' == b'+\xd8\x06\xc9\x7f\x0e\x00\xaf\x1a\x1f\xc32\x8f\xa7c\xa9&\x97#\xc8'
+E        +  where b'+\xd8\x06\xc9\x7f\x0e\x00\xaf\x1a\x1f\xc32\x8f\xa7c\xa9&\x97#\xc8' = _hex(b'+\xd8\x06\xc9\x7f\x0e\x00\xaf\x1a\x1f\xc32\x8f\xa7c\xa9&\x97#\xc8')
+
+tests/direct/test_lifecycle.py:16: AssertionError
+=========================== short test summary info ============================
+FAILED tests/direct/test_lifecycle.py::test_status_after_create - AssertionError: assert '0x2bd806c97F0e00aF1a1fC3328fA763a9269723C8' == b'+\xd8\x06\xc9\x7f\x0e\x00\xaf\x1a\x1f\xc32\x8f\xa7c\xa9&\x97#\xc8'
+ +  where b'+\xd8\x06\xc9\x7f\x0e\x00\xaf\x1a\x1f\xc32\x8f\xa7c\xa9&\x97#\xc8' = _hex(b'+\xd8\x06\xc9\x7f\x0e\x00\xaf\x1a\x1f\xc32\x8f\xa7c\xa9&\x97#\xc8')
+======================== 1 failed, 40 passed in 29.29s =========================
+##[error]Process completed with exit code 1.
